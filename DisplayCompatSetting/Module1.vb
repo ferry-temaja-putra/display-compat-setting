@@ -4,11 +4,13 @@ Imports System.Management
 
 Module Module1
 
-    Private Const DPISettingValue = "~ GDIDPISCALING DPIUNAWARE"
+    Private Const DPISettingValue = " GDIDPISCALING DPIUNAWARE"
     Private Const CompatibilitySettingKeyName = "HKEY_CURRENT_USER\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers"
     Private ReadOnly AppFileName As String = Assembly.GetExecutingAssembly.Location
     Private Const Windows10Caption = "Windows 10"
     Private Const FallCreatorsUpdateBuildNumber = 16299
+    Private Const HIGHDPIAWARESetting = " HIGHDPIAWARE"
+    Private Const DPIUNAWARESetting = " DPIUNAWARE"
 
     Sub Main()
 
@@ -66,7 +68,7 @@ Module Module1
 
         Dim currentValue = CType(Registry.GetValue(CompatibilitySettingKeyName, AppFileName, String.Empty), String)
 
-        If String.IsNullOrEmpty(currentValue) OrElse currentValue <> DPISettingValue Then
+        If String.IsNullOrEmpty(currentValue) OrElse Not currentValue.Contains(DPISettingValue) Then
             Console.WriteLine("High DPI Scaling is not configured.")
             Return False
         End If
@@ -80,7 +82,19 @@ Module Module1
 
         Console.WriteLine("Configuring High DPI Scaling...")
 
-        Registry.SetValue(CompatibilitySettingKeyName, AppFileName, DPISettingValue)
+        Dim value = CType(Registry.GetValue(CompatibilitySettingKeyName, AppFileName, String.Empty), String)
+
+        If String.IsNullOrEmpty(value) Then
+            value = "~"
+        End If
+
+        ' Remove DPI related setting
+        value = value.Replace(HIGHDPIAWARESetting, String.Empty)
+        value = value.Replace(DPIUNAWARESetting, String.Empty)
+
+        value &= DPISettingValue
+
+        Registry.SetValue(CompatibilitySettingKeyName, AppFileName, value)
 
         Console.WriteLine("High DPI Scaling is configured.")
 
