@@ -27,33 +27,39 @@ Module Module1
     Sub Main()
 
         If Not IsDisplayScaledUp() Then
+            Console.WriteLine("Current display is not scaled up. No need to override the display scaling.")
             Console.ReadLine()
             Return
         End If
 
         If Not IsOverrideHighDPIScalingSupported() Then
+            Console.WriteLine("Current OS does not support overriding high dpi scaling setting.")
             Console.ReadLine()
             Return
         End If
 
         If IsHighDPISettingConfigured() Then
+            Console.WriteLine("Override High DPI Scaling is already configured.")
             Console.ReadLine()
             Return
         End If
 
         ConfigureDPISetting()
 
+        Console.WriteLine("Override High DPI Scaling is configured.")
         Console.ReadLine()
 
     End Sub
 
     Private Function IsDisplayScaledUp() As Boolean
 
-        Console.WriteLine("Detecting Current Scaling")
+        Console.WriteLine("Detecting current scaling...")
 
         Dim scaleFactor = GetScalingFactor()
 
-        Console.WriteLine("Current DPI {0}", scaleFactor)
+        Console.WriteLine("Current display scale: {0}.", scaleFactor)
+
+        Console.WriteLine()
 
         Return scaleFactor > 1
 
@@ -76,16 +82,12 @@ Module Module1
             Exit For
         Next
 
-        Console.WriteLine("OS: {0} {1} {2}", osCaption, osBuildNumber, osVersion)
+        Console.WriteLine("Current OS: {0} {1} {2}.", osCaption, osBuildNumber, osVersion)
         Console.WriteLine()
 
         Dim isSupported =
             osCaption.Contains(Windows10Caption) AndAlso
             CType(osBuildNumber, Integer) >= FallCreatorsUpdateBuildNumber
-
-        If Not isSupported Then
-            Console.WriteLine("Current OS does not support overriding high dpi scaling setting.")
-        End If
 
         Return isSupported
 
@@ -102,7 +104,6 @@ Module Module1
             Return False
         End If
 
-        Console.WriteLine("High DPI Scaling is already configured.")
         Return True
 
     End Function
@@ -124,8 +125,6 @@ Module Module1
         value &= DPISettingValue
 
         Registry.SetValue(CompatibilitySettingKeyName, AppFileName, value)
-
-        Console.WriteLine("High DPI Scaling is configured.")
 
     End Sub
 
