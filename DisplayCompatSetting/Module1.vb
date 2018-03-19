@@ -1,6 +1,8 @@
 ﻿Imports Microsoft.Win32
 Imports System.Reflection
 Imports System.Management
+Imports System.Drawing
+Imports System.Runtime.InteropServices
 
 Module Module1
 
@@ -11,8 +13,23 @@ Module Module1
     Private Const FallCreatorsUpdateBuildNumber = 16299
     Private Const HIGHDPIAWARESetting = " HIGHDPIAWARE"
     Private Const DPIUNAWARESetting = " DPIUNAWARE"
+    Private Const DefaultDpi As Single = 96
+
+    <DllImport("gdi32.dll")>
+    Private Function GetDeviceCaps(ByVal hdc As IntPtr, ByVal nIndex As Integer) As Integer
+    End Function
+
+    Public Enum DeviceCap
+        VERTRES = 10
+        DESKTOPVERTRES = 117
+    End Enum
 
     Sub Main()
+
+        If Not IsDisplayScaledUp() Then
+            Console.ReadLine()
+            Return
+        End If
 
         If Not IsOverrideHighDPIScalingSupported() Then
             Console.ReadLine()
@@ -29,6 +46,18 @@ Module Module1
         Console.ReadLine()
 
     End Sub
+
+    Private Function IsDisplayScaledUp() As Boolean
+
+        Console.WriteLine("Detecting Current Scaling")
+
+        Dim scaleFactor = GetScalingFactor()
+
+        Console.WriteLine("Current DPI {0}", scaleFactor)
+
+        Return scaleFactor > 1
+
+    End Function
 
     Private Function IsOverrideHighDPIScalingSupported() As Boolean
 
@@ -99,5 +128,19 @@ Module Module1
         Console.WriteLine("High DPI Scaling is configured.")
 
     End Sub
+
+    Private Function GetScalingFactor() As Single
+
+        Using graphObj = Graphics.FromHwnd(IntPtr.Zero)
+
+            Dim desktop As IntPtr = graphObj.GetHdc()
+
+            Dim LogicalScreenHeight As Integer = GetDeviceCaps(desktop, CInt(DeviceCap.VERTRES))
+            Dim PhysicalScreenHeight As Integer = GetDeviceCaps(desktop, CInt(DeviceCap.DESKTOPVERTRES))
+
+            Return CSng(PhysicalScreenHeight) / CSng(LogicalScreenHeight)
+        End Using
+
+    End Function
 
 End Module
